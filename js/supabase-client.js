@@ -106,16 +106,44 @@
     /**
      * ดึงข้อมูลสรุปผลล่าสุดจาก Google Sheets สำหรับ Live Dashboard
      */
-    fetchSummaryData: function () {
+    fetchSummaryData: async function () {
+      var url = GAS_WEBAPP_URL + (GAS_WEBAPP_URL.indexOf('?') !== -1 ? '&' : '?') +
+        'action=summary&_t=' + Date.now();
+
+      try {
+        var response = await fetch(url, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (response.ok) {
+          var data = await response.json();
+          if (data && data.status === 'success') {
+            return {
+              total: data.total || 0,
+              grandAvg: Number(data.grandAvg || 0),
+              grandPct: Number(data.grandPct || 0),
+              wantAgainPct: Number(data.wantAgainPct || 0),
+              wantCount: data.wantCount || 0,
+              notWantCount: data.notWantCount || 0,
+              dimensionAvgs: data.dimensionAvgs || { time: 0, speakers: 0, knowledge: 0, career: 0, facilities: 0, food: 0 },
+              records: data.records || []
+            };
+          }
+        }
+      } catch (err) {
+        console.warn('Fetch GET error, trying JSONP fallback...', err);
+      }
+
       return new Promise(function (resolve) {
         var callbackName = 'ppch_sum_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-        var url = GAS_WEBAPP_URL + (GAS_WEBAPP_URL.indexOf('?') !== -1 ? '&' : '?') +
+        var jsonpUrl = GAS_WEBAPP_URL + (GAS_WEBAPP_URL.indexOf('?') !== -1 ? '&' : '?') +
           'action=summary' +
           '&callback=' + callbackName +
           '&_t=' + Date.now();
 
         var script = document.createElement('script');
-        script.src = url;
+        script.src = jsonpUrl;
 
         var timer = setTimeout(function () {
           cleanup();
@@ -125,8 +153,7 @@
             grandPct: 0,
             wantAgainPct: 0,
             dimensionAvgs: { time: 0, speakers: 0, knowledge: 0, career: 0, facilities: 0, food: 0 },
-            records: [],
-            notice: 'ยังไม่สามารถดึงข้อมูลสดได้ กรุณาตรวจสอบสิทธิ์ของ Apps Script'
+            records: []
           });
         }, 7000);
 

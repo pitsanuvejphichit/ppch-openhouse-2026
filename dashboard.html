@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แดชบอร์ดสรุปผลประเมิน | PPCH Open House 2026</title>
+  
+  <!-- Hospital Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      background-color: #f1f5f9;
+    }
+    .dashboard-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 20px 80px 20px;
+    }
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: #ecfdf5;
+      color: #059669;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid #a7f3d0;
+    }
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: pulseGreen 1.5s infinite;
+    }
+    @keyframes pulseGreen {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Toast Notification -->
+  <div id="toast" class="toast-msg">
+    <span class="material-icons-round" style="font-size:18px;">info</span>
+    <span id="toastText">แจ้งเตือน</span>
+  </div>
+
+  <div class="dashboard-container">
+
+    <!-- Top Navigation Header -->
+    <header class="top-nav" style="margin-bottom: 24px;">
+      <div class="brand-wrapper">
+        <img src="assets/logo.png" alt="PPCH Logo" class="brand-logo" onerror="this.style.display='none'">
+        <div class="brand-info">
+          <h1>PPCH Open House 2026 • Live Dashboard</h1>
+          <p>โรงพยาบาลพิษณุเวช พิจิตร • ห้องประชุมชั้น 5</p>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <span class="live-badge">
+          <span class="live-dot"></span>
+          <span>Google Sheets Live</span>
+        </span>
+        <button id="refreshDataBtn" class="btn-icon-nav" title="รีเฟรชข้อมูล">
+          <span class="material-icons-round" style="font-size:16px;">refresh</span>
+          <span>รีเฟรช</span>
+        </button>
+        <a href="https://docs.google.com/spreadsheets/d/1l6c1HyJ0hQaY7SK_DHkkdzEJ-33AClB0wW2tOCFCwLM/edit?gid=0#gid=0" target="_blank" class="btn-icon-nav" style="text-decoration:none; color:var(--ppch-emerald);">
+          <span class="material-icons-round" style="font-size:16px;">table_view</span>
+          <span>เปิดดู Google Sheet</span>
+        </a>
+        <a href="index.html" class="btn-icon-nav" style="text-decoration:none;">
+          <span class="material-icons-round" style="font-size:16px;">edit_note</span>
+          <span>หน้าแบบประเมิน</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Realtime KPI Metric Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card accent-navy">
+        <div class="kpi-label">ผู้ส่งแบบประเมินทั้งหมด</div>
+        <div>
+          <span class="kpi-value" id="kpiTotalResponses">0</span>
+          <span class="kpi-unit">ท่าน</span>
+        </div>
+      </div>
+
+      <div class="kpi-card accent-sky">
+        <div class="kpi-label">คะแนนเฉลี่ยรวม</div>
+        <div>
+          <span class="kpi-value" id="kpiGrandAvg">0.00</span>
+          <span class="kpi-unit">/ 5.00</span>
+        </div>
+      </div>
+
+      <div class="kpi-card accent-emerald">
+        <div class="kpi-label">ร้อยละความพึงพอใจ</div>
+        <div>
+          <span class="kpi-value" id="kpiGrandPct">0.0</span>
+          <span class="kpi-unit">%</span>
+        </div>
+      </div>
+
+      <div class="kpi-card accent-amber">
+        <div class="kpi-label">อยากให้จัดกิจกรรมอีก</div>
+        <div>
+          <span class="kpi-value" id="kpiWantAgainPct">0.0</span>
+          <span class="kpi-unit">%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dimension Breakdown -->
+    <div class="breakdown-card">
+      <div class="breakdown-header">
+        <div class="breakdown-title">📊 ผลคะแนนแยกตามหัวข้อ (เต็ม 5.00)</div>
+        <span style="font-size:12px; color:var(--ppch-slate-400);">เกณฑ์เป้าหมายความพึงพอใจ ≥ 4.00</span>
+      </div>
+
+      <!-- ข้อ 1 -->
+      <div class="dimension-item">
+        <div class="dimension-label-row">
+          <span>1. ระยะเวลาของการจัดกิจกรรมมีความเหมาะสม</span>
+          <span class="dimension-score-val" id="score_dim_time">0.00 / 5.00</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="bar_dim_time" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- ข้อ 2 -->
+      <div class="dimension-item">
+        <div class="dimension-label-row">
+          <span>2. เทคนิคและความรู้ ในการถ่ายทอดของวิทยากร</span>
+          <span class="dimension-score-val" id="score_dim_speakers">0.00 / 5.00</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="bar_dim_speakers" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- ข้อ 3 -->
+      <div class="dimension-item">
+        <div class="dimension-label-row">
+          <span>3. การเข้าร่วมกิจกรรมทำให้มีความรู้ความเข้าใจเพิ่มขึ้น</span>
+          <span class="dimension-score-val" id="score_dim_knowledge">0.00 / 5.00</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="bar_dim_knowledge" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- ข้อ 4 -->
+      <div class="dimension-item">
+        <div class="dimension-label-row">
+          <span>4. ความเชื่อมั่นที่จะนำความรู้ไปใช้ตัดสินใจสายอาชีพ</span>
+          <span class="dimension-score-val" id="score_dim_career">0.00 / 5.00</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="bar_dim_career" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- ข้อ 5 -->
+      <div class="dimension-item">
+        <div class="dimension-label-row">
+          <span>5. สิ่งอำนวยความสะดวกต่างๆ ในการเข้าอบรม</span>
+          <span class="dimension-score-val" id="score_dim_facilities">0.00 / 5.00</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="bar_dim_facilities" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- ข้อ 6 -->
+      <div class="dimension-item">
+        <div class="dimension-label-row">
+          <span>6. ความเหมาะสมของอาหารและเครื่องดื่ม</span>
+          <span class="dimension-score-val" id="score_dim_food">0.00 / 5.00</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="bar_dim_food" style="width: 0%;"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Filter Toolbar -->
+    <div class="streamlined-toolbar" style="margin-bottom: 20px;">
+      <input type="text" id="feedbackSearchInput" class="filter-input" placeholder="🔍 ค้นหาข้อเสนอแนะ...">
+      <select id="wantFilterSelect" class="filter-select">
+        <option value="all">ความต้องการจัดอีก (ทั้งหมด)</option>
+        <option value="อยาก">อยากให้จัดอีก</option>
+        <option value="ไม่อยาก">ไม่อยากให้จัดอีก</option>
+      </select>
+      <button type="button" id="btnExportCsv" class="btn-icon-nav" style="flex-shrink:0;">
+        <span class="material-icons-round" style="color:var(--ppch-blue);">table_view</span>
+        <span>ส่งออก CSV (UTF-8 BOM)</span>
+      </button>
+      <button type="button" id="btnPrintReport" class="btn-icon-nav" style="flex-shrink:0;">
+        <span class="material-icons-round" style="color:var(--ppch-sky);">print</span>
+        <span>พิมพ์รายงาน A4</span>
+      </button>
+    </div>
+
+    <!-- Feedback Feed -->
+    <div class="feedback-card">
+      <div class="breakdown-header">
+        <div class="breakdown-title">💬 ข้อเสนอแนะและความประทับใจล่าสุด</div>
+        <span id="feedbackCountBadge" style="font-size:12px; color:var(--ppch-slate-400);">0 รายการ</span>
+      </div>
+      <div class="feedback-list" id="feedbackListContainer">
+        <div style="text-align:center; padding:24px; color:var(--ppch-slate-400); font-size:13px;">
+          กำลังโหลดข้อมูลจาก Google Sheet...
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/supabase-client.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      var kpiTotalResponses = document.getElementById('kpiTotalResponses');
+      var kpiGrandAvg = document.getElementById('kpiGrandAvg');
+      var kpiGrandPct = document.getElementById('kpiGrandPct');
+      var kpiWantAgainPct = document.getElementById('kpiWantAgainPct');
+      var refreshDataBtn = document.getElementById('refreshDataBtn');
+      var feedbackListContainer = document.getElementById('feedbackListContainer');
+      var feedbackCountBadge = document.getElementById('feedbackCountBadge');
+      var feedbackSearchInput = document.getElementById('feedbackSearchInput');
+      var wantFilterSelect = document.getElementById('wantFilterSelect');
+      var btnExportCsv = document.getElementById('btnExportCsv');
+      var btnPrintReport = document.getElementById('btnPrintReport');
+      var toast = document.getElementById('toast');
+      var toastText = document.getElementById('toastText');
+
+      var cachedRecords = [];
+
+      function showToast(msg, duration) {
+        if (!toast) return;
+        toastText.textContent = msg;
+        toast.style.display = 'inline-flex';
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(function () {
+          toast.style.display = 'none';
+        }, duration || 3000);
+      }
+
+      async function loadData(manualClick) {
+        if (refreshDataBtn && manualClick) {
+          refreshDataBtn.classList.add('active');
+        }
+
+        try {
+          var metrics = await window.PPCH_API.fetchSummaryData();
+          cachedRecords = metrics.records || [];
+
+          kpiTotalResponses.textContent = (metrics.total || 0).toLocaleString();
+          kpiGrandAvg.textContent = (metrics.grandAvg || 0).toFixed(2);
+          kpiGrandPct.textContent = (metrics.grandPct || 0).toFixed(1);
+          kpiWantAgainPct.textContent = (metrics.wantAgainPct || 0).toFixed(1);
+
+          var dim = metrics.dimensionAvgs || {};
+          updateBar('time', dim.time || 0);
+          updateBar('speakers', dim.speakers || 0);
+          updateBar('knowledge', dim.knowledge || 0);
+          updateBar('career', dim.career || 0);
+          updateBar('facilities', dim.facilities || 0);
+          updateBar('food', dim.food || 0);
+
+          renderFeed();
+
+          if (manualClick) {
+            showToast('อัปเดตข้อมูลจาก Google Sheet เรียบร้อยแล้วค่ะ (' + (metrics.total || 0) + ' รายการ)', 2500);
+          }
+        } catch (e) {
+          console.warn('Dashboard error:', e);
+        } finally {
+          if (refreshDataBtn && manualClick) {
+            refreshDataBtn.classList.remove('active');
+          }
+        }
+      }
+
+      function updateBar(key, score) {
+        var scoreElem = document.getElementById('score_dim_' + key);
+        var barElem = document.getElementById('bar_dim_' + key);
+        if (scoreElem) {
+          scoreElem.textContent = Number(score || 0).toFixed(2) + ' / 5.00';
+        }
+        if (barElem) {
+          var pct = Math.min(100, Math.max(0, (score / 5.0) * 100));
+          barElem.style.width = pct + '%';
+        }
+      }
+
+      function renderFeed() {
+        if (!feedbackListContainer) return;
+
+        var query = feedbackSearchInput ? feedbackSearchInput.value.toLowerCase().trim() : '';
+        var wantFilter = wantFilterSelect ? wantFilterSelect.value : 'all';
+
+        var filtered = cachedRecords.filter(function (r) {
+          if (query) {
+            var matchSuggest = (r.suggestions || '').toLowerCase().indexOf(query) !== -1;
+            if (!matchSuggest) return false;
+          }
+          if (wantFilter !== 'all' && (r.want_again || 'อยาก') !== wantFilter) {
+            return false;
+          }
+          return true;
+        });
+
+        feedbackCountBadge.textContent = filtered.length + ' รายการ';
+
+        if (filtered.length === 0) {
+          feedbackListContainer.innerHTML = '<div style="text-align:center; padding:24px; color:var(--ppch-slate-400); font-size:13px;">ยังไม่มีข้อเสนอแนะเพิ่มเติมในขณะนี้ค่ะ</div>';
+          return;
+        }
+
+        var html = '';
+        filtered.forEach(function (r) {
+          var suggestText = r.suggestions && r.suggestions.trim() && r.suggestions !== '-' 
+            ? r.suggestions 
+            : '<em style="color:var(--ppch-slate-400); font-style:italic;">(ไม่มีข้อเสนอแนะเพิ่มเติม)</em>';
+          var timeStr = r.created_at ? new Date(r.created_at).toLocaleString('th-TH') : '';
+          var wantBadge = r.want_again === 'อยาก' 
+            ? '<span style="color:var(--ppch-emerald); font-weight:600;">✓ อยากให้จัดอีก</span>' 
+            : '<span style="color:var(--ppch-slate-500);">✕ ไม่อยากให้จัด</span>';
+
+          html += '<div class="feedback-bubble">' +
+            '<div class="feedback-meta">' +
+              '<span>ลำดับที่ ' + (r.id || '-') + '</span>' +
+              (timeStr ? '<span>• ' + timeStr + '</span>' : '') +
+              '<span>• ' + wantBadge + '</span>' +
+            '</div>' +
+            '<div>' + suggestText + '</div>' +
+          '</div>';
+        });
+
+        feedbackListContainer.innerHTML = html;
+      }
+
+      if (refreshDataBtn) {
+        refreshDataBtn.addEventListener('click', function () { loadData(true); });
+      }
+      if (feedbackSearchInput) {
+        feedbackSearchInput.addEventListener('input', renderFeed);
+      }
+      if (wantFilterSelect) {
+        wantFilterSelect.addEventListener('change', renderFeed);
+      }
+      if (btnExportCsv) {
+        btnExportCsv.addEventListener('click', function () {
+          window.PPCH_API.exportToCsv(cachedRecords, 'PPCH_OpenHouse_2026_Evaluation_' + new Date().toISOString().slice(0, 10) + '.csv');
+        });
+      }
+      if (btnPrintReport) {
+        btnPrintReport.addEventListener('click', function () {
+          window.print();
+        });
+      }
+
+      // Initial load
+      loadData(false);
+
+      // Auto-refresh every 15 seconds
+      setInterval(function () {
+        loadData(false);
+      }, 15000);
+
+    })();
+  </script>
+</body>
+</html>

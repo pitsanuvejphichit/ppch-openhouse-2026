@@ -21,6 +21,21 @@
     <span id="toastText">แจ้งเตือน</span>
   </div>
 
+  <!-- ==================== LOGO LOADING SCREEN OVERLAY ==================== -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-card">
+      <div class="logo-spinner-container">
+        <div class="spinner-ring"></div>
+        <img src="assets/logo.png" alt="PPCH Logo" class="loading-logo-img">
+      </div>
+      <div class="loading-title">กำลังบันทึกข้อมูล...</div>
+      <div class="loading-subtitle">กรุณารอสักครู่ ระบบกำลังส่งผลประเมินไปยัง Google Sheets ค่ะ</div>
+      <div class="loading-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
   <div class="app-container" id="appRoot">
 
     <!-- Top Sticky Navigation Bar -->
@@ -32,34 +47,29 @@
           <p>โรงพยาบาลพิษณุเวช พิจิตร • PRINC Group</p>
         </div>
       </div>
-      <div class="nav-actions">
-        <button id="viewSwitchBtn" class="btn-icon-nav" title="สลับมุมมอง">
-          <span class="material-icons-round" style="font-size:16px;">leaderboard</span>
-          <span id="viewSwitchText">แดชบอร์ดสด</span>
-        </button>
-      </div>
     </header>
 
     <!-- ==================== PARTICIPANT EVALUATION FORM ==================== -->
     <main id="participantFormView">
 
-      <!-- Hero Poster Card -->
-      <section class="hero-card">
-        <img src="assets/poster_openhouse_2026.jpg" alt="PPCH Open House 2026 Poster" class="hero-banner-img">
-        <div class="hero-content">
-          <div class="hero-tag-row">
-            <span class="badge-event-date">
-              <span class="material-icons-round" style="font-size:14px;">event</span>
-              22 ตุลาคม 2569
-            </span>
-            <span class="badge-event-loc">
-              <span class="material-icons-round" style="font-size:14px;">meeting_room</span>
-              ห้องประชุมชั้น 5
-            </span>
-          </div>
-          <h2 class="hero-title">แบบประเมินความพึงพอใจการจัดกิจกรรม</h2>
-          <p class="hero-subtitle">เปิดบ้านวิชาการ ตำแหน่งวิชาชีพในโรงพยาบาลพิษณุเวช พิจิตร</p>
+      <!-- Clean Header Info Card (ไม่มีภาพโปสเตอร์ส่วนหัวตามที่แจ้ง) -->
+      <section class="form-card" style="border-left: 5px solid var(--ppch-blue); padding: 22px 20px; margin-bottom: 20px;">
+        <div class="hero-tag-row" style="margin-bottom: 8px;">
+          <span class="badge-event-date">
+            <span class="material-icons-round" style="font-size:14px;">event</span>
+            22 ตุลาคม 2569
+          </span>
+          <span class="badge-event-loc">
+            <span class="material-icons-round" style="font-size:14px;">meeting_room</span>
+            ห้องประชุมชั้น 5
+          </span>
         </div>
+        <h2 style="font-size: 19px; font-weight: 700; color: var(--ppch-navy); line-height: 1.3; margin-bottom: 4px;">
+          แบบประเมินความพึงพอใจการจัดกิจกรรม
+        </h2>
+        <p style="font-size: 13px; color: var(--ppch-slate-500);">
+          เปิดบ้านวิชาการ ตำแหน่งวิชาชีพในโรงพยาบาลพิษณุเวช พิจิตร
+        </p>
       </section>
 
       <!-- Survey Form -->
@@ -284,179 +294,6 @@
 
     </main>
 
-    <!-- ==================== ORGANIZER LIVE DASHBOARD ==================== -->
-    <main id="dashboardView" class="dashboard-view">
-
-      <div class="dashboard-header">
-        <div class="dashboard-title">
-          <h2>📊 รายงานผลการประเมินแบบเรียลไทม์</h2>
-          <p>PPCH Open House 2026 • ผลคะแนนสดจากห้องประชุมชั้น 5</p>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <button id="refreshDataBtn" class="btn-icon-nav" title="รีเฟรชข้อมูล">
-            <span class="material-icons-round" style="font-size:16px;">refresh</span>
-            <span>รีเฟรช</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Realtime KPI Metric Cards -->
-      <div class="kpi-grid">
-        <div class="kpi-card accent-navy">
-          <div class="kpi-label">ผู้ส่งแบบประเมินทั้งหมด</div>
-          <div>
-            <span class="kpi-value" id="kpiTotalResponses">0</span>
-            <span class="kpi-unit">ท่าน</span>
-          </div>
-        </div>
-
-        <div class="kpi-card accent-sky">
-          <div class="kpi-label">คะแนนเฉลี่ยรวม</div>
-          <div>
-            <span class="kpi-value" id="kpiGrandAvg">0.00</span>
-            <span class="kpi-unit">/ 5.00</span>
-          </div>
-        </div>
-
-        <div class="kpi-card accent-emerald">
-          <div class="kpi-label">ร้อยละความพึงพอใจ</div>
-          <div>
-            <span class="kpi-value" id="kpiGrandPct">0.0</span>
-            <span class="kpi-unit">%</span>
-          </div>
-        </div>
-
-        <div class="kpi-card accent-amber">
-          <div class="kpi-label">อยากให้จัดกิจกรรมอีก</div>
-          <div>
-            <span class="kpi-value" id="kpiWantAgainPct">0.0</span>
-            <span class="kpi-unit">%</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Dimension Breakdown -->
-      <div class="breakdown-card">
-        <div class="breakdown-header">
-          <div class="breakdown-title">ผลคะแนนแยกตามหัวข้อ (เต็ม 5.00)</div>
-          <span style="font-size:12px; color:var(--ppch-slate-400);">เกณฑ์เป้าหมาย ≥ 4.00</span>
-        </div>
-
-        <!-- ข้อ 1 -->
-        <div class="dimension-item">
-          <div class="dimension-label-row">
-            <span>1. ระยะเวลาของการจัดกิจกรรมมีความเหมาะสม</span>
-            <span class="dimension-score-val" id="score_dim_time">0.00 / 5.00</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="bar_dim_time" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <!-- ข้อ 2 -->
-        <div class="dimension-item">
-          <div class="dimension-label-row">
-            <span>2. เทคนิคและความรู้ ในการถ่ายทอดของวิทยากร</span>
-            <span class="dimension-score-val" id="score_dim_speakers">0.00 / 5.00</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="bar_dim_speakers" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <!-- ข้อ 3 -->
-        <div class="dimension-item">
-          <div class="dimension-label-row">
-            <span>3. ความรู้ความเข้าใจเพิ่มขึ้น</span>
-            <span class="dimension-score-val" id="score_dim_knowledge">0.00 / 5.00</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="bar_dim_knowledge" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <!-- ข้อ 4 -->
-        <div class="dimension-item">
-          <div class="dimension-label-row">
-            <span>4. ความเชื่อมั่นในการตัดสินใจสายอาชีพ</span>
-            <span class="dimension-score-val" id="score_dim_career">0.00 / 5.00</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="bar_dim_career" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <!-- ข้อ 5 -->
-        <div class="dimension-item">
-          <div class="dimension-label-row">
-            <span>5. สิ่งอำนวยความสะดวกต่างๆ ในการเข้าอบรม</span>
-            <span class="dimension-score-val" id="score_dim_facilities">0.00 / 5.00</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="bar_dim_facilities" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <!-- ข้อ 6 -->
-        <div class="dimension-item">
-          <div class="dimension-label-row">
-            <span>6. ความเหมาะสมของอาหารและเครื่องดื่ม</span>
-            <span class="dimension-score-val" id="score_dim_food">0.00 / 5.00</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="bar_dim_food" style="width: 0%;"></div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Single-Row Streamlined Filter Toolbar (Rule 3) -->
-      <div class="streamlined-toolbar">
-        <input type="text" id="feedbackSearchInput" class="filter-input" placeholder="🔍 ค้นหาข้อเสนอแนะ...">
-        <select id="wantFilterSelect" class="filter-select">
-          <option value="all">ความต้องการจัดอีก (ทั้งหมด)</option>
-          <option value="อยาก">อยากให้จัดอีก</option>
-          <option value="ไม่อยาก">ไม่อยากให้จัดอีก</option>
-        </select>
-      </div>
-
-      <!-- Realtime Suggestions / Feedback Feed -->
-      <div class="feedback-card">
-        <div class="breakdown-header">
-          <div class="breakdown-title">💬 ข้อเสนอแนะและความประทับใจล่าสุด</div>
-          <span id="feedbackCountBadge" style="font-size:12px; color:var(--ppch-slate-400);">0 รายการ</span>
-        </div>
-        <div class="feedback-list" id="feedbackListContainer">
-          <div style="text-align:center; padding:24px; color:var(--ppch-slate-400); font-size:13px;">
-            ยังไม่มีข้อเสนอแนะเพิ่มเติมในขณะนี้ค่ะ
-          </div>
-        </div>
-      </div>
-
-    </main>
-
-  </div>
-
-  <!-- ==================== FLOATING SPEED DIAL (Rule 3) ==================== -->
-  <div class="speed-dial-container" id="speedDialContainer">
-    <button type="button" class="speed-dial-main-btn" id="speedDialBtn" title="เครื่องมือจัดการ">
-      <span class="material-icons-round" style="font-size:24px;">more_vert</span>
-      <span class="speed-dial-badge">3</span>
-    </button>
-    <div class="speed-dial-tray" id="speedDialTray">
-      <button type="button" class="speed-dial-action-item" id="btnOpenSheet">
-        <span class="material-icons-round" style="color:var(--ppch-emerald);">open_in_new</span>
-        <span>เปิดดู Google Sheet ผลประเมิน</span>
-      </button>
-      <button type="button" class="speed-dial-action-item" id="btnExportCsv">
-        <span class="material-icons-round" style="color:var(--ppch-blue);">table_view</span>
-        <span>ส่งออก Excel / CSV (UTF-8 BOM)</span>
-      </button>
-      <button type="button" class="speed-dial-action-item" id="btnPrintReport">
-        <span class="material-icons-round" style="color:var(--ppch-sky);">print</span>
-        <span>พิมพ์รายงานสรุปผล A4</span>
-      </button>
-    </div>
   </div>
 
   <!-- Scripts -->
