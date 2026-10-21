@@ -65,42 +65,6 @@
       <!-- Survey Form -->
       <form id="evaluationForm" autocomplete="off">
 
-        <!-- Card: ข้อมูลผู้ประเมิน (ไม่บังคับ) -->
-        <div class="form-card">
-          <div class="card-header-clean">
-            <div class="q-badge">
-              <span class="material-icons-round" style="font-size:18px;">badge</span>
-            </div>
-            <div>
-              <div class="q-title">สถานะผู้เข้าร่วมกิจกรรม</div>
-              <p style="font-size:12px; color:var(--ppch-slate-400);">เลือกกลุ่มสถานะของท่าน</p>
-            </div>
-          </div>
-          <div class="pill-grid" id="attendeeTypeGroup">
-            <div class="pill-option active" data-value="นักเรียน">
-              <span class="material-icons-round" style="font-size:16px;">school</span>
-              นักเรียน
-            </div>
-            <div class="pill-option" data-value="ครู-อาจารย์">
-              <span class="material-icons-round" style="font-size:16px;">psychology</span>
-              ครู-อาจารย์
-            </div>
-            <div class="pill-option" data-value="ผู้ปกครอง">
-              <span class="material-icons-round" style="font-size:16px;">family_restroom</span>
-              ผู้ปกครอง
-            </div>
-            <div class="pill-option" data-value="บุคคลทั่วไป">
-              <span class="material-icons-round" style="font-size:16px;">person</span>
-              บุคคลทั่วไป
-            </div>
-          </div>
-          <input type="hidden" name="attendee_type" id="attendeeTypeInput" value="นักเรียน">
-
-          <div style="margin-top: 14px;">
-            <input type="text" name="school_name" id="schoolNameInput" class="input-clean" placeholder="ชื่อโรงเรียน / สถาบันการศึกษา (ไม่บังคับ)">
-          </div>
-        </div>
-
         <!-- ข้อ 1. ระยะเวลาของการจัดกิจกรรมมีความเหมาะสม -->
         <div class="form-card" id="card_score_time">
           <div class="card-header-clean">
@@ -448,14 +412,7 @@
 
       <!-- Single-Row Streamlined Filter Toolbar (Rule 3) -->
       <div class="streamlined-toolbar">
-        <input type="text" id="feedbackSearchInput" class="filter-input" placeholder="🔍 ค้นหาข้อเสนอแนะหรือสถาบัน...">
-        <select id="attendeeFilterSelect" class="filter-select">
-          <option value="all">ทุกกลุ่มผู้ประเมิน</option>
-          <option value="นักเรียน">นักเรียน</option>
-          <option value="ครู-อาจารย์">ครู-อาจารย์</option>
-          <option value="ผู้ปกครอง">ผู้ปกครอง</option>
-          <option value="บุคคลทั่วไป">บุคคลทั่วไป</option>
-        </select>
+        <input type="text" id="feedbackSearchInput" class="filter-input" placeholder="🔍 ค้นหาข้อเสนอแนะ...">
         <select id="wantFilterSelect" class="filter-select">
           <option value="all">ความต้องการจัดอีก (ทั้งหมด)</option>
           <option value="อยาก">อยากให้จัดอีก</option>
@@ -483,71 +440,22 @@
   <!-- ==================== FLOATING SPEED DIAL (Rule 3) ==================== -->
   <div class="speed-dial-container" id="speedDialContainer">
     <button type="button" class="speed-dial-main-btn" id="speedDialBtn" title="เครื่องมือจัดการ">
-      <span class="material-icons-round" style="font-size:24px;">file_download</span>
+      <span class="material-icons-round" style="font-size:24px;">more_vert</span>
       <span class="speed-dial-badge">3</span>
     </button>
     <div class="speed-dial-tray" id="speedDialTray">
+      <button type="button" class="speed-dial-action-item" id="btnOpenSheet">
+        <span class="material-icons-round" style="color:var(--ppch-emerald);">open_in_new</span>
+        <span>เปิดดู Google Sheet ผลประเมิน</span>
+      </button>
       <button type="button" class="speed-dial-action-item" id="btnExportCsv">
-        <span class="material-icons-round" style="color:var(--ppch-emerald);">table_view</span>
+        <span class="material-icons-round" style="color:var(--ppch-blue);">table_view</span>
         <span>ส่งออก Excel / CSV (UTF-8 BOM)</span>
       </button>
       <button type="button" class="speed-dial-action-item" id="btnPrintReport">
         <span class="material-icons-round" style="color:var(--ppch-sky);">print</span>
         <span>พิมพ์รายงานสรุปผล A4</span>
       </button>
-      <button type="button" class="speed-dial-action-item" id="btnOpenSqlModal">
-        <span class="material-icons-round" style="color:var(--ppch-navy);">storage</span>
-        <span>คำสั่งสร้างฐานข้อมูล Supabase SQL</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- ==================== MODAL: SUPABASE SQL SCRIPT ==================== -->
-  <div class="modal-overlay" id="sqlModal">
-    <div class="modal-box">
-      <div class="modal-header">
-        <div style="font-weight:700; color:var(--ppch-navy); font-size:16px;">
-          🗄️ คำสั่ง SQL สำหรับ Supabase
-        </div>
-        <button type="button" class="modal-close-btn" id="btnCloseSqlModal">✕</button>
-      </div>
-      <p style="font-size:13px; color:var(--ppch-slate-600); margin-bottom:12px;">
-        คัดลอกโค้ด SQL ด้านล่างนี้ไปวางใน <strong>Supabase SQL Editor</strong> (โปรเจกต์ <code>jauxlzjmhtnncrwrloyr</code>) แล้วกด <strong>Run</strong> เพื่อเปิดใช้งานตารางพร้อมรองรับการกดส่งพร้อมกันทันทีค่ะ:
-      </p>
-      <pre class="code-snippet-box" id="sqlSnippet">CREATE TABLE IF NOT EXISTS public.ppch_openhouse_evaluations (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    event_name TEXT DEFAULT 'PPCH Open House 2026',
-    event_date DATE DEFAULT '2026-10-22',
-    attendee_type TEXT DEFAULT 'นักเรียน',
-    school_name TEXT DEFAULT '',
-    score_time SMALLINT NOT NULL CHECK (score_time BETWEEN 1 AND 5),
-    score_speakers SMALLINT NOT NULL CHECK (score_speakers BETWEEN 1 AND 5),
-    score_knowledge SMALLINT NOT NULL CHECK (score_knowledge BETWEEN 1 AND 5),
-    score_career SMALLINT NOT NULL CHECK (score_career BETWEEN 1 AND 5),
-    score_facilities SMALLINT NOT NULL CHECK (score_facilities BETWEEN 1 AND 5),
-    score_food SMALLINT NOT NULL CHECK (score_food BETWEEN 1 AND 5),
-    want_again TEXT NOT NULL CHECK (want_again IN ('อยาก', 'ไม่อยาก')),
-    suggestions TEXT DEFAULT '',
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    sheet_synced BOOLEAN DEFAULT FALSE,
-    sheet_synced_at TIMESTAMPTZ
-);
-
-ALTER TABLE public.ppch_openhouse_evaluations ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Allow public insert evaluations" 
-    ON public.ppch_openhouse_evaluations FOR INSERT 
-    WITH CHECK (true);
-
-CREATE POLICY "Allow public select evaluations" 
-    ON public.ppch_openhouse_evaluations FOR SELECT 
-    USING (true);</pre>
-      <div style="margin-top:16px; text-align:right;">
-        <button type="button" class="btn-icon-nav" id="btnCopySql" style="background:var(--ppch-blue); color:#fff; border:none; padding:8px 16px;">
-          <span class="material-icons-round" style="font-size:16px;">content_copy</span>
-          <span>คัดลอก SQL</span>
-        </button>
-      </div>
     </div>
   </div>
 

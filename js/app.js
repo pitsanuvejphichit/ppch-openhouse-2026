@@ -2,11 +2,14 @@
  * ==============================================================================
  * PPCH Open House 2026 - Main Application Logic
  * โรงพยาบาลพิษณุเวช พิจิตร (Phitsanuvej Phichit Hospital - PRINC Group)
+ * Database: Google Sheets (Spreadsheet ID: 1l6c1HyJ0hQaY7SK_DHkkdzEJ-33AClB0wW2tOCFCwLM)
  * Features:
- *   - Tactile 5-point rating buttons with instant micro-feedback
- *   - Instant Supabase PostgreSQL insert (High Concurrency / Sub-100ms)
+ *   - Tactile 5-point rating buttons (Q1 - Q6)
+ *   - Binary choice (Q7: อยาก / ไม่อยาก)
+ *   - Optional feedback (Q8)
  *   - Real-time Presenter & Organizer Live Dashboard
- *   - Speed Dial FAB with Auto-Collapse in 1s (Rule 3)
+ *   - Speed Dial FAB with 1s Auto-Collapse (Rule 3)
+ *   - Direct 1-Click Link to Google Sheet
  *   - CSV Export with UTF-8 BOM (\uFEFF) (Rule 3)
  *   - Zero localStorage compliance (Rule 4)
  * ==============================================================================
@@ -36,25 +39,18 @@
   var feedbackListContainer = document.getElementById('feedbackListContainer');
   var feedbackCountBadge = document.getElementById('feedbackCountBadge');
   var feedbackSearchInput = document.getElementById('feedbackSearchInput');
-  var attendeeFilterSelect = document.getElementById('attendeeFilterSelect');
   var wantFilterSelect = document.getElementById('wantFilterSelect');
 
   // Speed Dial DOM
   var speedDialContainer = document.getElementById('speedDialContainer');
   var speedDialBtn = document.getElementById('speedDialBtn');
   var speedDialTray = document.getElementById('speedDialTray');
+  var btnOpenSheet = document.getElementById('btnOpenSheet');
   var btnExportCsv = document.getElementById('btnExportCsv');
   var btnPrintReport = document.getElementById('btnPrintReport');
-  var btnOpenSqlModal = document.getElementById('btnOpenSqlModal');
-
-  // Modal DOM
-  var sqlModal = document.getElementById('sqlModal');
-  var btnCloseSqlModal = document.getElementById('btnCloseSqlModal');
-  var btnCopySql = document.getElementById('btnCopySql');
-  var sqlSnippet = document.getElementById('sqlSnippet');
 
   // State (Memory Only - STRICTLY ZERO localStorage)
-  var currentView = 'form'; // 'form' or 'dashboard'
+  var currentView = 'form';
   var cachedRecords = [];
   var speedDialTimer = null;
 
@@ -66,9 +62,6 @@
     '5': '5: มากที่สุด'
   };
 
-  /**
-   * Helper แสดงกล่องข้อความ Toast
-   */
   function showToast(msg, duration) {
     if (!toast) return;
     toastText.textContent = msg;
@@ -79,20 +72,14 @@
     }, duration || 3000);
   }
 
-  /**
-   * เริ่มต้นระบบและผูก Event Handlers
-   */
   function init() {
-    setupAttendeePills();
     setupRatingButtons();
     setupWantAgainToggle();
     setupFormSubmission();
     setupViewSwitching();
     setupDashboardControls();
     setupSpeedDial();
-    setupModal();
 
-    // ตรวจสอบ URL query string เช่น ?view=dashboard
     var urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('view') === 'dashboard') {
       switchView('dashboard');
@@ -100,25 +87,7 @@
   }
 
   /**
-   * 1. สลับกลุ่มผู้ประเมิน (Attendee Type Pills)
-   */
-  function setupAttendeePills() {
-    var pills = document.querySelectorAll('#attendeeTypeGroup .pill-option');
-    var input = document.getElementById('attendeeTypeInput');
-
-    pills.forEach(function (pill) {
-      pill.addEventListener('click', function () {
-        pills.forEach(function (p) { p.classList.remove('active'); });
-        pill.classList.add('active');
-        if (input) {
-          input.value = pill.getAttribute('data-value');
-        }
-      });
-    });
-  }
-
-  /**
-   * 2. ปุ่มให้คะแนน 1-5 แบบ Tactile พร้อมคำบรรยายระดับคะแนน
+   * 1. ปุ่มให้คะแนน 1-5 แบบ Tactile พร้อมคำบรรยายระดับคะแนน
    */
   function setupRatingButtons() {
     var rows = document.querySelectorAll('.rating-buttons-row');
@@ -134,22 +103,18 @@
         btn.addEventListener('click', function () {
           var val = btn.getAttribute('data-val');
 
-          // Highlight button
           btns.forEach(function (b) { b.classList.remove('active'); });
           btn.classList.add('active');
 
-          // Set hidden value
           if (hiddenInput) {
             hiddenInput.value = val;
           }
 
-          // Update badge
           if (badge) {
             badge.textContent = RATING_LABELS[val] || val;
             badge.style.opacity = '1';
           }
 
-          // Clear validation highlight
           if (card) {
             card.classList.remove('highlighted');
           }
@@ -159,7 +124,7 @@
   }
 
   /**
-   * 3. ปุ่มเลือกความต้องการให้จัดอีกหรือไม่ (อยาก / ไม่อยาก)
+   * 2. ปุ่มเลือกความต้องการให้จัดอีกหรือไม่ (อยาก / ไม่อยาก)
    */
   function setupWantAgainToggle() {
     var btnYes = document.getElementById('btnWantYes');
@@ -186,7 +151,7 @@
   }
 
   /**
-   * 4. การส่งแบบฟอร์มและการตรวจสอบความถูกต้อง
+   * 3. การส่งแบบฟอร์มและการตรวจสอบความถูกต้อง
    */
   function setupFormSubmission() {
     if (!form) return;
@@ -194,7 +159,6 @@
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
 
-      // ตรวจสอบข้อ 1 ถึง 6
       var ratingFields = [
         { id: 'score_time', title: 'ข้อ 1. ความเหมาะสมของระยะเวลา' },
         { id: 'score_speakers', title: 'ข้อ 2. วิทยากร' },
@@ -218,10 +182,7 @@
         }
       }
 
-      // เตรียม Payload
       var formData = {
-        attendee_type: document.getElementById('attendeeTypeInput').value,
-        school_name: document.getElementById('schoolNameInput').value,
         score_time: document.getElementById('input_score_time').value,
         score_speakers: document.getElementById('input_score_speakers').value,
         score_knowledge: document.getElementById('input_score_knowledge').value,
@@ -232,37 +193,33 @@
         suggestions: document.getElementById('input_suggestions').value
       };
 
-      // แสดงสถานะกำลังส่ง
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span class="material-icons-round" style="animation:spin 1s linear infinite;">refresh</span> <span>กำลังส่งแบบประเมิน...</span>';
 
       try {
-        var result = await window.PPCH_API.submitEvaluation(formData);
+        await window.PPCH_API.submitEvaluation(formData);
         
-        // ส่งสำเร็จ -> แสดง Success Card
         form.style.display = 'none';
         successCard.style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        showToast('บันทึกแบบประเมินเรียบร้อยแล้ว ขอบพระคุณค่ะ', 4000);
+        showToast('บันทึกผลเข้า Google Sheet เรียบร้อยแล้ว ขอบพระคุณค่ะ', 4000);
 
       } catch (err) {
         console.error('Submission failed:', err);
-        // หากส่งไม่ผ่าน (เช่น Supabase ยังไม่ได้รัน SQL) ให้แจ้งเตือนพร้อมเสนอทางออก
-        alert('ระบบไม่สามารถบันทึกเข้า Supabase ได้ในขณะนี้\nรายละเอียด: ' + err.message + '\n\nหากเป็นการรันระบบครั้งแรก กรุณาตรวจสอบว่าได้คัดลอกคำสั่ง SQL ไปรันใน Supabase หรือยังนะคะ');
+        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล:\n' + err.message);
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<span class="material-icons-round">send</span> <span>ส่งแบบประเมินความพึงพอใจ</span>';
       }
     });
 
-    // ปุ่มรีเซ็ตสำหรับทำแบบประเมินท่านถัดไป
     if (btnResetForm) {
       btnResetForm.addEventListener('click', function () {
         form.reset();
         document.querySelectorAll('.rating-btn').forEach(function (b) { b.classList.remove('active'); });
         document.querySelectorAll('.scale-status-badge').forEach(function (b) { b.style.opacity = '0'; });
         document.querySelectorAll('input[type="hidden"]').forEach(function (i) {
-          if (i.id !== 'attendeeTypeInput' && i.id !== 'input_want_again') i.value = '';
+          if (i.id !== 'input_want_again') i.value = '';
         });
         setupWantAgainToggle();
         successCard.style.display = 'none';
@@ -273,7 +230,7 @@
   }
 
   /**
-   * 5. การสลับหน้าจอ (Form View <-> Dashboard View)
+   * 4. การสลับหน้าจอ (Form View <-> Dashboard View)
    */
   function setupViewSwitching() {
     if (!viewSwitchBtn) return;
@@ -308,7 +265,7 @@
   }
 
   /**
-   * 6. จัดการข้อมูล Dashboard & ฟิลเตอร์กรองข้อมูล
+   * 5. จัดการข้อมูล Dashboard & ฟิลเตอร์กรองข้อมูล
    */
   function setupDashboardControls() {
     if (refreshDataBtn) {
@@ -319,9 +276,6 @@
 
     if (feedbackSearchInput) {
       feedbackSearchInput.addEventListener('input', renderFilteredFeed);
-    }
-    if (attendeeFilterSelect) {
-      attendeeFilterSelect.addEventListener('change', renderFilteredFeed);
     }
     if (wantFilterSelect) {
       wantFilterSelect.addEventListener('change', renderFilteredFeed);
@@ -337,13 +291,11 @@
       var metrics = await window.PPCH_API.fetchSummaryData();
       cachedRecords = metrics.records || [];
 
-      // Update KPI
       kpiTotalResponses.textContent = metrics.total.toLocaleString();
       kpiGrandAvg.textContent = metrics.grandAvg.toFixed(2);
       kpiGrandPct.textContent = metrics.grandPct.toFixed(1);
       kpiWantAgainPct.textContent = metrics.wantAgainPct.toFixed(1);
 
-      // Update Breakdown Bars
       updateBar('time', metrics.dimensionAvgs.time);
       updateBar('speakers', metrics.dimensionAvgs.speakers);
       updateBar('knowledge', metrics.dimensionAvgs.knowledge);
@@ -351,11 +303,10 @@
       updateBar('facilities', metrics.dimensionAvgs.facilities);
       updateBar('food', metrics.dimensionAvgs.food);
 
-      // Render Feedback Feed
       renderFilteredFeed();
 
       if (manualClick) {
-        showToast('อัปเดตข้อมูลล่าสุดเรียบร้อยแล้วค่ะ (' + metrics.total + ' รายการ)', 2500);
+        showToast('อัปเดตข้อมูลจาก Google Sheet เรียบร้อยแล้วค่ะ (' + metrics.total + ' รายการ)', 2500);
       }
     } catch (e) {
       console.warn('Dashboard load error:', e);
@@ -382,21 +333,13 @@
     if (!feedbackListContainer) return;
 
     var query = feedbackSearchInput ? feedbackSearchInput.value.toLowerCase().trim() : '';
-    var attendeeFilter = attendeeFilterSelect ? attendeeFilterSelect.value : 'all';
     var wantFilter = wantFilterSelect ? wantFilterSelect.value : 'all';
 
     var filtered = cachedRecords.filter(function (r) {
-      // Filter by suggestion or school query
       if (query) {
         var matchSuggest = (r.suggestions || '').toLowerCase().indexOf(query) !== -1;
-        var matchSchool = (r.school_name || '').toLowerCase().indexOf(query) !== -1;
-        if (!matchSuggest && !matchSchool) return false;
+        if (!matchSuggest) return false;
       }
-      // Filter by attendee type
-      if (attendeeFilter !== 'all' && (r.attendee_type || 'นักเรียน') !== attendeeFilter) {
-        return false;
-      }
-      // Filter by want again
       if (wantFilter !== 'all' && (r.want_again || 'อยาก') !== wantFilter) {
         return false;
       }
@@ -413,16 +356,15 @@
     var html = '';
     filtered.forEach(function (r) {
       var suggestText = r.suggestions && r.suggestions.trim() ? r.suggestions : '<em style="color:var(--ppch-slate-400); font-style:italic;">(ไม่มีข้อเสนอแนะเพิ่มเติม)</em>';
-      var timeStr = r.created_at ? new Date(r.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '';
+      var timeStr = r.created_at ? r.created_at : '';
       var wantBadge = r.want_again === 'อยาก' 
         ? '<span style="color:var(--ppch-emerald); font-weight:600;">✓ อยากให้จัดอีก</span>' 
         : '<span style="color:var(--ppch-slate-500);">✕ ไม่อยากให้จัด</span>';
 
       html += '<div class="feedback-bubble">' +
         '<div class="feedback-meta">' +
-          '<span class="feedback-badge">' + (r.attendee_type || 'นักเรียน') + '</span>' +
-          (r.school_name ? '<span>• ' + r.school_name + '</span>' : '') +
-          '<span>• เวลา ' + timeStr + ' น.</span>' +
+          '<span># ' + (r.id || '') + '</span>' +
+          (timeStr ? '<span>• ' + timeStr + '</span>' : '') +
           '<span>• ' + wantBadge + '</span>' +
         '</div>' +
         '<div>' + suggestText + '</div>' +
@@ -433,7 +375,7 @@
   }
 
   /**
-   * 7. Speed Dial FAB Management (Rule 3)
+   * 6. Speed Dial FAB Management (Rule 3)
    * Auto-collapses within 1 second after mouseleave
    */
   function setupSpeedDial() {
@@ -448,7 +390,7 @@
       clearTimeout(speedDialTimer);
       speedDialTimer = setTimeout(function () {
         speedDialTray.classList.remove('open');
-      }, 1000); // 1 วินาทีตามกฎเหล็ก UX/UI Rule 3
+      }, 1000);
     }
 
     speedDialBtn.addEventListener('click', function (e) {
@@ -458,6 +400,14 @@
 
     speedDialContainer.addEventListener('mouseenter', openTray);
     speedDialContainer.addEventListener('mouseleave', closeTray);
+
+    // Open Google Sheet in new tab
+    if (btnOpenSheet) {
+      btnOpenSheet.addEventListener('click', function () {
+        window.open(window.PPCH_API.getSheetUrl(), '_blank');
+        closeTray();
+      });
+    }
 
     // Export CSV
     if (btnExportCsv) {
@@ -474,37 +424,7 @@
         closeTray();
       });
     }
-
-    // Open Supabase SQL Modal
-    if (btnOpenSqlModal) {
-      btnOpenSqlModal.addEventListener('click', function () {
-        if (sqlModal) sqlModal.classList.add('open');
-        closeTray();
-      });
-    }
   }
 
-  /**
-   * 8. Supabase SQL Modal Management
-   */
-  function setupModal() {
-    if (btnCloseSqlModal && sqlModal) {
-      btnCloseSqlModal.addEventListener('click', function () {
-        sqlModal.classList.remove('open');
-      });
-    }
-
-    if (btnCopySql && sqlSnippet) {
-      btnCopySql.addEventListener('click', function () {
-        navigator.clipboard.writeText(sqlSnippet.textContent).then(function () {
-          showToast('คัดลอกคำสั่ง SQL ไปยังคลิปบอร์ดแล้วค่ะ', 3000);
-        }).catch(function () {
-          showToast('ไม่สามารถคัดลอกได้ กรุณาคัดลอกด้วยตนเองค่ะ', 3000);
-        });
-      });
-    }
-  }
-
-  // Launch on DOM ready
   document.addEventListener('DOMContentLoaded', init);
 })();
