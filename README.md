@@ -1,7 +1,9 @@
 # PPCH Open House 2026 - ระบบเว็บแอปประเมินความพึงพอใจ
 > **โรงพยาบาลพิษณุเวช พิจิตร (Phitsanuvej Phichit Hospital - PRINC Group)**  
 > กิจกรรม: **Pitsanuvej Phichit Open House 2026 (เปิดบ้านวิชาการ ตำแหน่งวิชาชีพในโรงพยาบาล)**  
-> วันที่จัดกิจกรรม: **22 ตุลาคม 2569 ณ ห้องประชุมชั้น 5 โรงพยาบาลพิษณุเวช พิจิตร**
+> วันที่จัดกิจกรรม: **22 ตุลาคม 2569 ณ ห้องประชุมชั้น 5 โรงพยาบาลพิษณุเวช พิจิตร**  
+> 🔗 **Live Website (GitHub Pages)**: [https://pitsanuvejphichit.github.io/ppch-openhouse-2026/](https://pitsanuvejphichit.github.io/ppch-openhouse-2026/)  
+> 📦 **GitHub Repository**: [https://github.com/pitsanuvejphichit/ppch-openhouse-2026](https://github.com/pitsanuvejphichit/ppch-openhouse-2026)
 
 ---
 
