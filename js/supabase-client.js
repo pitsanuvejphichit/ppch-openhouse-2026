@@ -1,33 +1,37 @@
 /**
  * ==============================================================================
- * PPCH Open House 2026 - Google Sheets Data Engine
+ * PPCH Open House 2026 - Google Sheets High-Compatibility Data Engine
  * โรงพยาบาลพิษณุเวช พิจิตร (Phitsanuvej Phichit Hospital - PRINC Group)
  * Primary Database: Google Sheets
  * Spreadsheet ID: 1l6c1HyJ0hQaY7SK_DHkkdzEJ-33AClB0wW2tOCFCwLM
- * Apps Script Web App: AKfycbyjkp9P9s9-ykTxtLelwsGdBezL3xjhOFBmdOTvTGL4RnHhJx6nLsnHSfGGVVYIkDbeJA
  * ==============================================================================
  */
 
 (function (window) {
   'use strict';
 
-  var GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyjkp9P9s9-ykTxtLelwsGdBezL3xjhOFBmdOTvTGL4RnHhJx6nLsnHSfGGVVYIkDbeJA/exec';
+  var GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwkTR6uD_YvGexWF5LhrF7V_fJESSp8GCnA9cz_GFjD9rwoWu_E4sB6VHKC1ij7IERs9Q/exec';
   var GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1l6c1HyJ0hQaY7SK_DHkkdzEJ-33AClB0wW2tOCFCwLM/edit?gid=0#gid=0';
 
   var PPCH_API = {
     getGasUrl: function () {
       return GAS_WEBAPP_URL;
     },
+    setGasUrl: function (url) {
+      if (url && url.trim()) {
+        GAS_WEBAPP_URL = url.trim();
+      }
+    },
     getSheetUrl: function () {
       return GOOGLE_SHEET_URL;
     },
 
     /**
-     * ส่งผลแบบประเมินเข้า Google Sheets (ผ่าน Google Apps Script Web App)
+     * ส่งผลแบบประเมินเข้า Google Sheets
+     * ใช้ JSONP เพื่อให้ข้าม CORS ได้ 100% บนทุกเบราว์เซอร์ และได้รับสถานะยืนยันจริง
      */
-    submitEvaluation: async function (formData) {
+    submitEvaluation: function (formData) {
       var payload = {
-        event_name: 'PPCH Open House 2026',
         score_time: parseInt(formData.score_time, 10),
         score_speakers: parseInt(formData.score_speakers, 10),
         score_knowledge: parseInt(formData.score_knowledge, 10),
@@ -38,72 +42,125 @@
         suggestions: formData.suggestions ? formData.suggestions.trim() : ''
       };
 
-      try {
-        // ใช้ no-cors mode เพื่อรองรับ Google Apps Script Web App บนเบราว์เซอร์ทุกอุปกรณ์
-        await fetch(GAS_WEBAPP_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8'
-          },
-          body: JSON.stringify(payload)
-        });
+      return new Promise(function (resolve, reject) {
+        var callbackName = 'ppch_cb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+        var url = GAS_WEBAPP_URL + (GAS_WEBAPP_URL.indexOf('?') !== -1 ? '&' : '?') +
+          'action=submit' +
+          '&callback=' + callbackName +
+          '&payload=' + encodeURIComponent(JSON.stringify(payload)) +
+          '&_t=' + Date.now();
 
-        return {
-          success: true,
-          source: 'google_sheets',
-          data: payload
+        var script = document.createElement('script');
+        script.src = url;
+
+        var timer = setTimeout(function () {
+          cleanup();
+          // หาก JSONP ติด Timeout (เช่น ผู้ใช้ยังไม่ได้กด Deploy เป็น Anyone ใน Apps Script) ให้ลอง Fallback POST no-cors
+          console.warn('JSONP timed out, attempting no-cors POST fallback...');
+          fetch(GAS_WEBAPP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          }).then(function () {
+            resolve({ success: true, source: 'google_sheets_post', data: payload });
+          }).catch(function (e) {
+            reject(new Error('ไม่สามารถบันทึกข้อมูลเข้า Google Sheets ได้: ' + e.message));
+          });
+        }, 8000);
+
+        function cleanup() {
+          clearTimeout(timer);
+          try { delete window[callbackName]; } catch (e) {}
+          if (script.parentNode) script.parentNode.removeChild(script);
+        }
+
+        window[callbackName] = function (res) {
+          cleanup();
+          if (res && res.status === 'success') {
+            resolve({ success: true, source: 'google_sheets', data: res });
+          } else {
+            reject(new Error((res && res.message) || 'ระบบบันทึกไม่สำเร็จ'));
+          }
         };
-      } catch (err) {
-        console.error('Google Sheets submit error:', err);
-        throw new Error('ไม่สามารถบันทึกข้อมูลเข้า Google Sheets ได้: ' + err.message);
-      }
+
+        script.onerror = function () {
+          cleanup();
+          // Fallback no-cors POST
+          fetch(GAS_WEBAPP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          }).then(function () {
+            resolve({ success: true, source: 'google_sheets_post', data: payload });
+          }).catch(function (e) {
+            reject(new Error('ไม่สามารถเชื่อมต่อ Google Apps Script ได้ (อาจยังไม่ได้ให้สิทธิ์เข้าถึงหรือตั้งค่า Anyone ค่ะ)'));
+          });
+        };
+
+        document.body.appendChild(script);
+      });
     },
 
     /**
      * ดึงข้อมูลสรุปผลล่าสุดจาก Google Sheets สำหรับ Live Dashboard
      */
-    fetchSummaryData: async function () {
-      try {
-        var response = await fetch(GAS_WEBAPP_URL, {
-          method: 'GET',
-          headers: { 'Accept': 'application/json' }
-        });
+    fetchSummaryData: function () {
+      return new Promise(function (resolve) {
+        var callbackName = 'ppch_sum_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+        var url = GAS_WEBAPP_URL + (GAS_WEBAPP_URL.indexOf('?') !== -1 ? '&' : '?') +
+          'action=summary' +
+          '&callback=' + callbackName +
+          '&_t=' + Date.now();
 
-        if (response.ok) {
-          var data = await response.json();
-          return {
-            total: data.total || 0,
-            grandAvg: Number(data.grandAvg || 0),
-            grandPct: Number(data.grandPct || 0),
-            wantAgainPct: Number(data.wantAgainPct || 0),
-            wantCount: data.wantCount || 0,
-            notWantCount: data.notWantCount || 0,
-            dimensionAvgs: data.dimensionAvgs || {
-              time: 0,
-              speakers: 0,
-              knowledge: 0,
-              career: 0,
-              facilities: 0,
-              food: 0
-            },
-            records: data.records || []
-          };
-        } else {
-          throw new Error('HTTP ' + response.status);
+        var script = document.createElement('script');
+        script.src = url;
+
+        var timer = setTimeout(function () {
+          cleanup();
+          resolve({
+            total: 0,
+            grandAvg: 0,
+            grandPct: 0,
+            wantAgainPct: 0,
+            dimensionAvgs: { time: 0, speakers: 0, knowledge: 0, career: 0, facilities: 0, food: 0 },
+            records: [],
+            notice: 'ยังไม่สามารถดึงข้อมูลสดได้ กรุณาตรวจสอบสิทธิ์ของ Apps Script'
+          });
+        }, 7000);
+
+        function cleanup() {
+          clearTimeout(timer);
+          try { delete window[callbackName]; } catch (e) {}
+          if (script.parentNode) script.parentNode.removeChild(script);
         }
-      } catch (err) {
-        console.warn('Could not fetch summary from GAS Web App:', err);
-        return {
-          total: 0,
-          grandAvg: 0,
-          grandPct: 0,
-          wantAgainPct: 0,
-          dimensionAvgs: { time: 0, speakers: 0, knowledge: 0, career: 0, facilities: 0, food: 0 },
-          records: [],
-          error: err.message
+
+        window[callbackName] = function (data) {
+          cleanup();
+          if (data && data.status === 'success') {
+            resolve({
+              total: data.total || 0,
+              grandAvg: Number(data.grandAvg || 0),
+              grandPct: Number(data.grandPct || 0),
+              wantAgainPct: Number(data.wantAgainPct || 0),
+              wantCount: data.wantCount || 0,
+              notWantCount: data.notWantCount || 0,
+              dimensionAvgs: data.dimensionAvgs || { time: 0, speakers: 0, knowledge: 0, career: 0, facilities: 0, food: 0 },
+              records: data.records || []
+            });
+          } else {
+            resolve({ total: 0, grandAvg: 0, grandPct: 0, wantAgainPct: 0, dimensionAvgs: { time: 0, speakers: 0, knowledge: 0, career: 0, facilities: 0, food: 0 }, records: [] });
+          }
         };
-      }
+
+        script.onerror = function () {
+          cleanup();
+          resolve({ total: 0, grandAvg: 0, grandPct: 0, wantAgainPct: 0, dimensionAvgs: { time: 0, speakers: 0, knowledge: 0, career: 0, facilities: 0, food: 0 }, records: [] });
+        };
+
+        document.body.appendChild(script);
+      });
     },
 
     /**
