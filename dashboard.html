@@ -74,6 +74,10 @@
           <span class="material-icons-round" style="font-size:16px;">refresh</span>
           <span>รีเฟรช</span>
         </button>
+        <button type="button" id="btnOpenQrModal" class="btn-icon-nav" style="color:var(--ppch-blue);">
+          <span class="material-icons-round" style="font-size:16px;">qr_code_2</span>
+          <span>QR Code</span>
+        </button>
         <a href="https://docs.google.com/spreadsheets/d/1l6c1HyJ0hQaY7SK_DHkkdzEJ-33AClB0wW2tOCFCwLM/edit?gid=0#gid=0" target="_blank" class="btn-icon-nav" style="text-decoration:none; color:var(--ppch-emerald);">
           <span class="material-icons-round" style="font-size:16px;">table_view</span>
           <span>เปิดดู Google Sheet</span>
@@ -226,6 +230,45 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- QR Code Modal Overlay -->
+  <div id="qrModal" class="modal-backdrop" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(15,23,42,0.65); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px;">
+    <div class="modal-card" style="background:#ffffff; border-radius:24px; padding:32px; max-width:440px; width:100%; text-align:center; box-shadow:0 25px 50px -12px rgba(0,0,0,0.35); position:relative; animation:fadeIn 0.2s ease;">
+      <button type="button" id="btnCloseQrModal" style="position:absolute; top:16px; right:16px; border:none; background:transparent; cursor:pointer; color:var(--ppch-slate-400); padding:4px;" title="ปิดหน้าต่าง">
+        <span class="material-icons-round" style="font-size:24px;">close</span>
+      </button>
+
+      <div style="font-size:12px; font-weight:600; color:var(--ppch-sky); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">
+        PPCH Open House 2026
+      </div>
+      <h3 style="font-size:18px; font-weight:700; color:var(--ppch-navy); margin-bottom:16px;">
+        QR Code แบบประเมินความพึงพอใจ
+      </h3>
+
+      <div style="background:#ffffff; border:2px solid var(--ppch-slate-200); border-radius:20px; padding:14px; display:inline-block; margin-bottom:14px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.05);">
+        <img src="assets/qr_evaluation.png" alt="PPCH Evaluation QR Code" style="width:230px; height:230px; display:block; border-radius:10px;">
+      </div>
+
+      <p style="font-size:13px; color:var(--ppch-slate-600); line-height:1.5; margin-bottom:20px;">
+        สแกนด้วยกล้องมือถือ เพื่อร่วมตอบแบบประเมินความพึงพอใจค่ะ
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <a href="assets/qr_evaluation.png" download="PPCH_OpenHouse_2026_QRCode.png" class="btn-primary" style="text-decoration:none; justify-content:center; padding:10px 16px; font-size:13px;">
+          <span class="material-icons-round" style="font-size:18px;">download</span>
+          <span>ดาวน์โหลด QR Code (PNG คมชัดสูง)</span>
+        </a>
+        <a href="assets/qr_standee_card.png" target="_blank" class="btn-icon-nav" style="text-decoration:none; justify-content:center; padding:10px 16px; font-size:13px; color:var(--ppch-navy); border-color:var(--ppch-slate-200);">
+          <span class="material-icons-round" style="font-size:18px;">print</span>
+          <span>เปิดดูภาพป้ายตั้งโต๊ะ A4 (Standee)</span>
+        </a>
+        <button type="button" id="btnCopyFormUrl" class="btn-icon-nav" style="justify-content:center; padding:10px 16px; font-size:13px; border-color:var(--ppch-slate-200);">
+          <span class="material-icons-round" style="font-size:18px;">content_copy</span>
+          <span>คัดลอกลิงก์แบบประเมิน</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Scripts -->
@@ -395,6 +438,37 @@
       if (btnPrintReport) {
         btnPrintReport.addEventListener('click', function () {
           window.print();
+        });
+      }
+
+      // QR Code Modal Handlers
+      var btnOpenQrModal = document.getElementById('btnOpenQrModal');
+      var btnCloseQrModal = document.getElementById('btnCloseQrModal');
+      var qrModal = document.getElementById('qrModal');
+      var btnCopyFormUrl = document.getElementById('btnCopyFormUrl');
+
+      if (btnOpenQrModal && qrModal) {
+        btnOpenQrModal.addEventListener('click', function () {
+          qrModal.style.display = 'flex';
+        });
+      }
+      if (btnCloseQrModal && qrModal) {
+        btnCloseQrModal.addEventListener('click', function () {
+          qrModal.style.display = 'none';
+        });
+        qrModal.addEventListener('click', function (e) {
+          if (e.target === qrModal) {
+            qrModal.style.display = 'none';
+          }
+        });
+      }
+      if (btnCopyFormUrl) {
+        btnCopyFormUrl.addEventListener('click', function () {
+          navigator.clipboard.writeText('https://pitsanuvejphichit.github.io/ppch-openhouse-2026/').then(function () {
+            showToast('คัดลอกลิงก์แบบประเมินเรียบร้อยแล้วค่ะ');
+          }).catch(function () {
+            showToast('ลิงก์: https://pitsanuvejphichit.github.io/ppch-openhouse-2026/');
+          });
         });
       }
 
