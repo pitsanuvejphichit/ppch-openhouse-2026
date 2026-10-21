@@ -49,11 +49,12 @@ body {
   min-height: 100vh;
 }
 
-/* ==================== APP CONTAINER & TOP NAVIGATION ==================== */
+/* ==================== APP CONTAINER & TOP NAVIGATION (MOBILE-FIRST) ==================== */
 .app-container {
-  max-width: 720px;
+  max-width: 540px;
   margin: 0 auto;
-  padding: 16px 16px 80px 16px;
+  padding: 12px 14px 60px 14px;
+  box-sizing: border-box;
 }
 
 .widescreen-mode {
@@ -65,15 +66,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 18px;
+  padding: 10px 14px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
-  border-radius: var(--radius-lg);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
   border: 1px solid var(--ppch-slate-200);
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin-bottom: 12px;
   position: sticky;
-  top: 12px;
+  top: 8px;
   z-index: 50;
 }
 
@@ -81,24 +83,36 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
 }
 
 .brand-logo {
-  height: 38px;
+  height: 36px;
+  max-width: 120px;
   width: auto;
   object-fit: contain;
+  flex-shrink: 0;
+}
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .brand-info h1 {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ppch-navy);
-  line-height: 1.2;
+  line-height: 1.25;
+  margin: 0;
 }
 
 .brand-info p {
   font-size: 11px;
   color: var(--ppch-slate-500);
+  margin: 1px 0 0 0;
+  line-height: 1.2;
 }
 
 .nav-actions {
@@ -206,14 +220,14 @@ body {
   color: var(--ppch-slate-500);
 }
 
-/* ==================== FORM SECTION CARDS ==================== */
+/* ==================== FORM SECTION CARDS (MOBILE-FIRST) ==================== */
 .form-card {
   background: #ffffff;
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  margin-bottom: 16px;
+  border-radius: 16px;
+  padding: 16px 14px;
+  margin-bottom: 12px;
   border: 1px solid var(--ppch-slate-200);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
@@ -229,29 +243,29 @@ body {
 .card-header-clean {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .q-badge {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   background: var(--ppch-blue-light);
   color: var(--ppch-blue);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .q-title {
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--ppch-slate-800);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .q-required {
@@ -330,11 +344,11 @@ body {
 .rating-buttons-row {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
+  gap: 6px;
 }
 
 .rating-btn {
-  height: 52px;
+  height: 50px;
   border-radius: 12px;
   border: 1.5px solid var(--ppch-slate-200);
   background: #ffffff;
@@ -345,8 +359,9 @@ body {
   font-family: inherit;
   cursor: pointer;
   position: relative;
-  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .rating-btn .score-num {
@@ -359,11 +374,10 @@ body {
 .rating-btn:hover {
   border-color: var(--ppch-sky);
   background: var(--ppch-slate-50);
-  transform: translateY(-1px);
 }
 
 .rating-btn:active {
-  transform: scale(0.96);
+  transform: scale(0.95);
 }
 
 /* Selected state for rating buttons */
@@ -371,7 +385,6 @@ body {
   border-color: var(--ppch-blue);
   background: linear-gradient(135deg, var(--ppch-blue) 0%, var(--ppch-navy) 100%);
   box-shadow: 0 4px 12px rgba(0, 75, 147, 0.28);
-  transform: translateY(-2px);
 }
 
 .rating-btn.active .score-num {
@@ -381,14 +394,15 @@ body {
 .scale-hint-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 11px;
   color: var(--ppch-slate-400);
-  padding: 0 4px;
+  padding: 0 2px;
 }
 
 .scale-status-badge {
   align-self: center;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--ppch-blue);
   background: var(--ppch-blue-light);
@@ -397,7 +411,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-height: 24px;
+  min-height: 22px;
   transition: opacity 0.2s ease;
 }
 
@@ -405,30 +419,32 @@ body {
 .choice-grid-binary {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 8px;
 }
 
 .choice-btn {
-  padding: 16px;
+  padding: 12px 10px;
+  min-height: 54px;
   border-radius: 12px;
   border: 2px solid var(--ppch-slate-200);
   background: #ffffff;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .choice-btn .choice-icon {
-  font-size: 26px;
+  font-size: 22px;
 }
 
 .choice-btn .choice-label {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--ppch-slate-700);
 }
@@ -438,10 +454,14 @@ body {
   background: var(--ppch-slate-50);
 }
 
+.choice-btn:active {
+  transform: scale(0.97);
+}
+
 .choice-btn.selected-yes {
   border-color: var(--ppch-emerald);
   background: #ecfdf5;
-  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.18);
+  box-shadow: 0 3px 10px rgba(5, 150, 105, 0.15);
 }
 
 .choice-btn.selected-yes .choice-label {
@@ -451,7 +471,7 @@ body {
 .choice-btn.selected-no {
   border-color: var(--ppch-slate-400);
   background: #f8fafc;
-  box-shadow: 0 4px 14px rgba(100, 116, 139, 0.12);
+  box-shadow: 0 3px 10px rgba(100, 116, 139, 0.10);
 }
 
 .choice-btn.selected-no .choice-label {
@@ -461,9 +481,19 @@ body {
 /* Textarea styling */
 .textarea-clean {
   width: 100%;
-  min-height: 90px;
-  padding: 12px 16px;
-  border-radius: 10px;
+  min-height: 85px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--ppch-slate-200);
+  font-family: inherit;
+  font-size: 16px; /* 16px prevents iOS Safari auto-zoom on focus */
+  color: var(--ppch-slate-800);
+  background: #ffffff;
+  resize: vertical;
+  line-height: 1.4;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
   border: 1.5px solid var(--ppch-slate-200);
   font-family: inherit;
   font-size: 14px;
@@ -1086,4 +1116,102 @@ body {
   display: none;
   align-items: center;
   gap: 8px;
+}
+
+/* ==================== DEDICATED MOBILE SCREEN OPTIMIZATIONS ==================== */
+@media (max-width: 600px) {
+  body {
+    -webkit-text-size-adjust: 100%;
+    background-color: #f8fafc;
+  }
+
+  .app-container {
+    max-width: 100%;
+    padding: 10px 12px 60px 12px;
+  }
+
+  .top-nav {
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border-radius: 14px;
+    top: 6px;
+  }
+
+  .brand-logo {
+    height: 32px;
+  }
+
+  .brand-info h1 {
+    font-size: 14.5px;
+  }
+
+  .brand-info p {
+    font-size: 10.5px;
+  }
+
+  .form-card {
+    padding: 14px 12px;
+    margin-bottom: 10px;
+    border-radius: 14px;
+  }
+
+  .card-header-clean {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .q-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    font-size: 12px;
+  }
+
+  .q-title {
+    font-size: 13.5px;
+    line-height: 1.35;
+  }
+
+  .rating-buttons-row {
+    gap: 4px;
+  }
+
+  .rating-btn {
+    height: 48px;
+    border-radius: 10px;
+  }
+
+  .rating-btn .score-num {
+    font-size: 17px;
+  }
+
+  .scale-hint-row {
+    font-size: 10.5px;
+  }
+
+  .choice-btn {
+    padding: 10px 6px;
+    min-height: 50px;
+    border-radius: 10px;
+  }
+
+  .choice-btn .choice-icon {
+    font-size: 20px;
+  }
+
+  .choice-btn .choice-label {
+    font-size: 13px;
+  }
+
+  .textarea-clean {
+    font-size: 16px; /* Crucial to prevent iOS auto-zoom on mobile inputs */
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  .btn-submit-main {
+    height: 50px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
 }
