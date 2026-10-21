@@ -68,7 +68,7 @@
       <div class="nav-actions">
         <span class="live-badge">
           <span class="live-dot"></span>
-          <span>Google Sheets Live</span>
+          <span id="liveStatusText">Google Sheets Live</span>
         </span>
         <button id="refreshDataBtn" class="btn-icon-nav" title="รีเฟรชข้อมูล">
           <span class="material-icons-round" style="font-size:16px;">refresh</span>
@@ -229,7 +229,7 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/supabase-client.js"></script>
+  <script src="js/supabase-client.js?v=20261021_04"></script>
   <script>
     (function () {
       'use strict';
@@ -238,6 +238,7 @@
       var kpiGrandAvg = document.getElementById('kpiGrandAvg');
       var kpiGrandPct = document.getElementById('kpiGrandPct');
       var kpiWantAgainPct = document.getElementById('kpiWantAgainPct');
+      var liveStatusText = document.getElementById('liveStatusText');
       var refreshDataBtn = document.getElementById('refreshDataBtn');
       var feedbackListContainer = document.getElementById('feedbackListContainer');
       var feedbackCountBadge = document.getElementById('feedbackCountBadge');
@@ -258,6 +259,20 @@
         toast._timer = setTimeout(function () {
           toast.style.display = 'none';
         }, duration || 3000);
+      }
+
+      function formatTimeStr(val) {
+        if (!val) return '';
+        if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val)) {
+          return val;
+        }
+        try {
+          var d = new Date(val);
+          if (!isNaN(d.getTime())) {
+            return d.toLocaleString('th-TH');
+          }
+        } catch (e) {}
+        return String(val);
       }
 
       async function loadData(manualClick) {
@@ -284,11 +299,19 @@
 
           renderFeed();
 
+          if (liveStatusText) {
+            var nowTime = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            liveStatusText.textContent = 'Google Sheets Live (' + nowTime + ')';
+          }
+
           if (manualClick) {
             showToast('อัปเดตข้อมูลจาก Google Sheet เรียบร้อยแล้วค่ะ (' + (metrics.total || 0) + ' รายการ)', 2500);
           }
         } catch (e) {
           console.warn('Dashboard error:', e);
+          if (liveStatusText) {
+            liveStatusText.textContent = 'การเชื่อมต่อขัดข้อง';
+          }
         } finally {
           if (refreshDataBtn && manualClick) {
             refreshDataBtn.classList.remove('active');
@@ -337,7 +360,7 @@
           var suggestText = r.suggestions && r.suggestions.trim() && r.suggestions !== '-' 
             ? r.suggestions 
             : '<em style="color:var(--ppch-slate-400); font-style:italic;">(ไม่มีข้อเสนอแนะเพิ่มเติม)</em>';
-          var timeStr = r.created_at ? new Date(r.created_at).toLocaleString('th-TH') : '';
+          var timeStr = formatTimeStr(r.created_at);
           var wantBadge = r.want_again === 'อยาก' 
             ? '<span style="color:var(--ppch-emerald); font-weight:600;">✓ อยากให้จัดอีก</span>' 
             : '<span style="color:var(--ppch-slate-500);">✕ ไม่อยากให้จัด</span>';

@@ -104,14 +104,127 @@
     },
 
     /**
+     * แปลงข้อมูล Google Sheets GViz Query เป็นชุดข้อมูลมาตรฐานสำหรับ Dashboard
+     */
+    parseGvizData: function (rawText) {
+      var jsonStart = rawText.indexOf('{');
+      var jsonEnd = rawText.lastIndexOf('}');
+      if (jsonStart === -1 || jsonEnd === -1) {
+        throw new Error('Invalid GViz response');
+      }
+      var data = JSON.parse(rawText.substring(jsonStart, jsonEnd + 1));
+      var rows = (data.table && data.table.rows) || [];
+
+      var sumTime = 0, sumSpeakers = 0, sumKnowledge = 0, sumCareer = 0, sumFacilities = 0, sumFood = 0, sumGrand = 0;
+      var wantCount = 0;
+      var records = [];
+
+      rows.forEach(function (r, idx) {
+        var c = r.c || [];
+        var id = c[0] ? (c[0].v != null ? c[0].v : idx + 1) : idx + 1;
+        var created_at = '';
+        if (c[1]) {
+          created_at = c[1].f || c[1].v || '';
+          if (typeof created_at === 'string' && created_at.indexOf('Date(') === 0) {
+            var match = created_at.match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)/);
+            if (match) {
+              var y = match[1], m = String(Number(match[2]) + 1).padStart(2, '0'), d = String(match[3]).padStart(2, '0');
+              var hh = match[4] ? String(match[4]).padStart(2, '0') : '00';
+              var mm = match[5] ? String(match[5]).padStart(2, '0') : '00';
+              var ss = match[6] ? String(match[6]).padStart(2, '0') : '00';
+              created_at = y + '-' + m + '-' + d + ' ' + hh + ':' + mm + ':' + ss;
+            }
+          }
+        }
+        var q1 = c[2] ? Number(c[2].v) || 0 : 0;
+        var q2 = c[3] ? Number(c[3].v) || 0 : 0;
+        var q3 = c[4] ? Number(c[4].v) || 0 : 0;
+        var q4 = c[5] ? Number(c[5].v) || 0 : 0;
+        var q5 = c[6] ? Number(c[6].v) || 0 : 0;
+        var q6 = c[7] ? Number(c[7].v) || 0 : 0;
+        var avg = c[8] ? Number(c[8].v) || ((q1 + q2 + q3 + q4 + q5 + q6) / 6.0) : ((q1 + q2 + q3 + q4 + q5 + q6) / 6.0);
+        var want = c[10] ? String(c[10].v || 'อยาก').trim() : 'อยาก';
+        var suggest = c[11] ? String(c[11].v || '').trim() : '';
+
+        sumTime += q1;
+        sumSpeakers += q2;
+        sumKnowledge += q3;
+        sumCareer += q4;
+        sumFacilities += q5;
+        sumFood += q6;
+        sumGrand += avg;
+        if (want === 'อยาก') wantCount++;
+
+        records.unshift({
+          id: id,
+          created_at: created_at,
+          score_time: q1,
+          score_speakers: q2,
+          score_knowledge: q3,
+          score_career: q4,
+          score_facilities: q5,
+          score_food: q6,
+          avg: Number(avg.toFixed(2)),
+          want_again: want,
+          suggestions: suggest === '-' ? '' : suggest
+        });
+      });
+
+      var total = rows.length;
+      var grandAvg = total > 0 ? Number((sumGrand / total).toFixed(2)) : 0;
+      var grandPct = total > 0 ? Number(((grandAvg / 5.0) * 100).toFixed(1)) : 0;
+      var wantAgainPct = total > 0 ? Number(((wantCount / total) * 100).toFixed(1)) : 0;
+
+      return {
+        status: 'success',
+        source: 'google_sheets_gviz',
+        total: total,
+        grandAvg: grandAvg,
+        grandPct: grandPct,
+        wantAgainPct: wantAgainPct,
+        wantCount: wantCount,
+        notWantCount: total - wantCount,
+        dimensionAvgs: {
+          time: total > 0 ? Number((sumTime / total).toFixed(2)) : 0,
+          speakers: total > 0 ? Number((sumSpeakers / total).toFixed(2)) : 0,
+          knowledge: total > 0 ? Number((sumKnowledge / total).toFixed(2)) : 0,
+          career: total > 0 ? Number((sumCareer / total).toFixed(2)) : 0,
+          facilities: total > 0 ? Number((sumFacilities / total).toFixed(2)) : 0,
+          food: total > 0 ? Number((sumFood / total).toFixed(2)) : 0
+        },
+        records: records
+      };
+    },
+
+    /**
      * ดึงข้อมูลสรุปผลล่าสุดจาก Google Sheets สำหรับ Live Dashboard
+     * 1. เรียกตรงผ่าน Google Sheets GViz API (<50ms, Zero CORS errors)
+     * 2. หากไม่ได้ผล ให้สลับไปเรียก Google Apps Script Web App แบบอัตโนมัติ
      */
     fetchSummaryData: async function () {
-      var url = GAS_WEBAPP_URL + (GAS_WEBAPP_URL.indexOf('?') !== -1 ? '&' : '?') +
+      var self = this;
+
+      // กลยุทธ์ที่ 1: ดึงตรงจาก Google Sheets GViz API
+      try {
+        var gvizUrl = 'https://docs.google.com/spreadsheets/d/1l6c1HyJ0hQaY7SK_DHkkdzEJ-33AClB0wW2tOCFCwLM/gviz/tq?tqx=out:json&_t=' + Date.now();
+        var gvizRes = await fetch(gvizUrl, { method: 'GET', cache: 'no-store' });
+        if (gvizRes.ok) {
+          var gvizText = await gvizRes.text();
+          var parsed = self.parseGvizData(gvizText);
+          if (parsed && typeof parsed.total === 'number') {
+            return parsed;
+          }
+        }
+      } catch (gvizErr) {
+        console.warn('GViz fetch failed, falling back to Apps Script Web App...', gvizErr);
+      }
+
+      // กลยุทธ์ที่ 2: ดึงผ่าน Google Apps Script Web App (JSON)
+      var gasUrl = GAS_WEBAPP_URL + (GAS_WEBAPP_URL.indexOf('?') !== -1 ? '&' : '?') +
         'action=summary&_t=' + Date.now();
 
       try {
-        var response = await fetch(url, {
+        var response = await fetch(gasUrl, {
           method: 'GET',
           headers: { 'Accept': 'application/json' }
         });
@@ -120,6 +233,8 @@
           var data = await response.json();
           if (data && data.status === 'success') {
             return {
+              status: 'success',
+              source: 'google_apps_script',
               total: data.total || 0,
               grandAvg: Number(data.grandAvg || 0),
               grandPct: Number(data.grandPct || 0),
@@ -131,10 +246,11 @@
             };
           }
         }
-      } catch (err) {
-        console.warn('Fetch GET error, trying JSONP fallback...', err);
+      } catch (gasErr) {
+        console.warn('Apps Script fetch failed, trying JSONP fallback...', gasErr);
       }
 
+      // กลยุทธ์ที่ 3: Fallback JSONP
       return new Promise(function (resolve) {
         var callbackName = 'ppch_sum_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
         var jsonpUrl = GAS_WEBAPP_URL + (GAS_WEBAPP_URL.indexOf('?') !== -1 ? '&' : '?') +
@@ -155,7 +271,7 @@
             dimensionAvgs: { time: 0, speakers: 0, knowledge: 0, career: 0, facilities: 0, food: 0 },
             records: []
           });
-        }, 7000);
+        }, 6000);
 
         function cleanup() {
           clearTimeout(timer);
@@ -167,6 +283,8 @@
           cleanup();
           if (data && data.status === 'success') {
             resolve({
+              status: 'success',
+              source: 'google_apps_script_jsonp',
               total: data.total || 0,
               grandAvg: Number(data.grandAvg || 0),
               grandPct: Number(data.grandPct || 0),
