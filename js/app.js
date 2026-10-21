@@ -44,12 +44,14 @@
 
   function showLoading() {
     if (loadingOverlay) {
+      loadingOverlay.style.display = 'flex';
       loadingOverlay.classList.add('active');
     }
   }
 
   function hideLoading() {
     if (loadingOverlay) {
+      loadingOverlay.style.display = 'none';
       loadingOverlay.classList.remove('active');
     }
   }

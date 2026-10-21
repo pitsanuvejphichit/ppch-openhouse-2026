@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=20261021_02">
 </head>
 <body>
 
@@ -22,14 +22,14 @@
   </div>
 
   <!-- ==================== LOGO LOADING SCREEN OVERLAY ==================== -->
-  <div id="loadingOverlay" class="loading-overlay">
-    <div class="loading-card">
-      <div class="logo-spinner-container">
+  <div id="loadingOverlay" class="loading-overlay" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px;">
+    <div class="loading-card" style="background: #ffffff; border-radius: 24px; padding: 36px 32px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column; align-items: center;">
+      <div class="logo-spinner-container" style="position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
         <div class="spinner-ring"></div>
-        <img src="assets/logo.png" alt="PPCH Logo" class="loading-logo-img">
+        <img src="assets/logo.png" alt="PPCH Logo" class="loading-logo-img" style="width: 64px; height: 64px; max-width: 64px; max-height: 64px; object-fit: contain;">
       </div>
-      <div class="loading-title">กำลังบันทึกข้อมูล...</div>
-      <div class="loading-subtitle">กรุณารอสักครู่ ระบบกำลังส่งผลประเมินไปยัง Google Sheets ค่ะ</div>
+      <div class="loading-title" style="font-size: 17px; font-weight: 700; color: var(--ppch-navy); margin-bottom: 6px;">กำลังบันทึกข้อมูล...</div>
+      <div class="loading-subtitle" style="font-size: 13px; color: var(--ppch-slate-500); line-height: 1.4; margin-bottom: 14px;">กรุณารอสักครู่ ระบบกำลังส่งผลประเมินไปยัง Google Sheets ค่ะ</div>
       <div class="loading-dots">
         <span></span><span></span><span></span>
       </div>
